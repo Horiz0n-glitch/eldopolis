@@ -10,6 +10,7 @@ import { SmallNewsCard } from "@/components/small-news-card"
 import { MediumNewsCard } from "@/components/medium-news-card"
 import { getNewsOptimized } from "@/lib/firebase-optimized"
 import AdPlaceholder from "@/components/Publi/AdPlaceholder"
+import { WeatherWidget } from "@/components/weather-widget"
 
 interface LoadMoreNewsProps {
     initialNews: News[]
@@ -141,19 +142,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                     </div>
 
                     {/* Clima */}
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-xl text-white shadow-xl">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <p className="text-sm font-bold opacity-80">Eldorado, MN</p>
-                                <h3 className="text-4xl font-black">28°C</h3>
-                            </div>
-                            <span className="material-symbols-outlined text-5xl">wb_sunny</span>
-                        </div>
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
-                            <span>Humedad: 82%</span>
-                            <span>Viento: 12 km/h</span>
-                        </div>
-                    </div>
+                    <WeatherWidget />
 
                     <AdPlaceholder height="300px" text="Publicidad" />
                 </aside>

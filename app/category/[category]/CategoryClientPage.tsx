@@ -21,6 +21,7 @@ import { WebSiteJsonLd } from "@/components/seo/json-ld"
 import { convertirURL } from "@/lib/image-utils"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { WeatherWidget } from "@/components/weather-widget"
 
 const categoryMapping: Record<string, string> = {
     mundo: "Mundo",
@@ -409,19 +410,8 @@ export default function CategoryClientPage({
                         </div>
 
                         {/* Weather Widget */}
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-2xl text-white shadow-xl">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <p className="text-sm font-bold opacity-80">Eldorado, MN</p>
-                                    <h3 className="text-4xl font-black">28°C</h3>
-                                </div>
-                                <Sun className="w-12 h-12" />
-                            </div>
-                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
-                                <span>Humedad: 82%</span>
-                                <span>Viento: 12 km/h</span>
-                            </div>
-                        </div>
+                        {/* Weather Widget */}
+                        <WeatherWidget />
 
                         {/* Newsletter Signup */}
                         <div className="p-8 bg-slate-900 dark:bg-slate-950 rounded-2xl text-white border border-slate-800">
