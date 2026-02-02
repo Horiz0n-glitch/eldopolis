@@ -19,6 +19,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    # Intenta cargar variables desde .env si existe (común en despliegues)
+    env_file:
+      - .env
     environment:
       # Runtime variables (incluyendo Cloudflare R2)
       - NODE_ENV=production
