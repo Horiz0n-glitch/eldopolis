@@ -167,21 +167,34 @@ export async function getNewsOptimized(
         limit(pageSize),
       )
     } else if (lastDate) {
-      // Fallback para paginación basada en fecha (útil tras SSR inicial)
-      // Asumiendo que 'date' en Firestore es Timestamp o compatible con Date
-      console.log(`[CLIENT-API] Building query with lastDate (as Date): ${lastDate}`);
+      console.log(`[CLIENT-API] Building query with lastDate (String): ${lastDate}`);
+      // Intento 1: Usar fecha como String
       newsQuery = query(
         collection(db, "news"),
         orderBy("date", "desc"),
-        startAfter(new Date(lastDate)),
+        startAfter(lastDate),
         limit(pageSize),
       )
     } else {
       console.log("[CLIENT-API] Building initial query (no cursor)");
     }
 
-    const snapshot = await getDocs(newsQuery)
-    console.log(`[SERVER] Snapshot size: ${snapshot.size}`)
+    let snapshot = await getDocs(newsQuery)
+
+    // Lógica de Reintento para Fallback de Fecha
+    if (snapshot.size === 0 && lastDate && !lastDoc) {
+      console.log("[CLIENT-API] ⚠️ String query returned 0 results. Retrying with Date object...");
+      const retryQuery = query(
+        collection(db, "news"),
+        orderBy("date", "desc"),
+        startAfter(new Date(lastDate)),
+        limit(pageSize),
+      );
+      snapshot = await getDocs(retryQuery);
+      console.log(`[CLIENT-API] Retry result size: ${snapshot.size}`);
+    }
+
+    console.log(`[CLIENT-API] Snapshot size: ${snapshot.size}`)
 
     if (snapshot.size === 0) {
       console.log("[SERVER] ⚠️ No news found in Firestore")
