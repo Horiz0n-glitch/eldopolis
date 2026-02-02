@@ -79,7 +79,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   // Solo mostramos advertencias si hay errores críticos.
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
       <DolarHeaderProvider>
         <ScrollToTopProvider>
           <div className="min-h-screen flex flex-col bg-white">
