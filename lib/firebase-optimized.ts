@@ -129,13 +129,14 @@ function convertFirestoreToAd(doc: QueryDocumentSnapshot<DocumentData>): Publici
  */
 export async function getNewsOptimized(
   pageSize = 10,
-  lastDoc?: QueryDocumentSnapshot<DocumentData>,
+  lastDoc?: QueryDocumentSnapshot<DocumentData> | null,
+  lastDate?: string
 ): Promise<{
   news: News[]
   lastDoc: QueryDocumentSnapshot<DocumentData> | null
   hasMore: boolean
 }> {
-  const cacheKey = `news-optimized-${pageSize}-${lastDoc?.id || "first"}`
+  const cacheKey = `news-optimized-${pageSize}-${lastDoc?.id || lastDate || "first"}`
   const cached = getFromCache<{
     news: News[]
     lastDoc: QueryDocumentSnapshot<DocumentData> | null
@@ -148,7 +149,7 @@ export async function getNewsOptimized(
   }
 
   try {
-    console.log(`[SERVER] Fetching news. PageSize: ${pageSize}, hasLastDoc: ${!!lastDoc}`)
+    console.log(`[SERVER] Fetching news. PageSize: ${pageSize}, hasLastDoc: ${!!lastDoc}, hasLastDate: ${!!lastDate}`)
 
     // Consulta básica
     let newsQuery = query(
@@ -162,6 +163,15 @@ export async function getNewsOptimized(
         collection(db, "news"),
         orderBy("date", "desc"),
         startAfter(lastDoc),
+        limit(pageSize),
+      )
+    } else if (lastDate) {
+      // Fallback para paginación basada en fecha (útil tras SSR inicial)
+      // Asumiendo que 'date' en Firestore es Timestamp o compatible con Date
+      newsQuery = query(
+        collection(db, "news"),
+        orderBy("date", "desc"),
+        startAfter(new Date(lastDate)), // Firestore SDK convierte Date a Timestamp automáticamente en comparaciones
         limit(pageSize),
       )
     }

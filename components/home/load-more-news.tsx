@@ -29,14 +29,26 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
         setLoading(true)
 
         try {
-            // Usamos las últimas noticias cargadas para obtener el marcador de paginación si no tenemos lastDoc directo
-            // Aquí asumo que getNewsOptimized maneja el cursor internamente o necesita el ID
-            const result = await getNewsOptimized(12, lastDoc)
+            // Usamos lastDoc si tenemos uno (de cargas anteriores en cliente)
+            // Si no (primera carga despues de SSR), usamos la fecha de la última noticia para paginar
+            let currentLastDate: string | undefined = undefined
+
+            if (!lastDoc && allNews.length > 0) {
+                const lastNews = allNews[allNews.length - 1]
+                currentLastDate = lastNews.date
+            }
+
+            const result = await getNewsOptimized(12, lastDoc, currentLastDate)
 
             if (result.news.length === 0) {
                 setHasMore(false)
             } else {
-                setAllNews(prev => [...prev, ...result.news])
+                // Filtrar duplicados por si acaso (aunque Firebase no deberia devolverlos si la paginacion funciona bien)
+                setAllNews(prev => {
+                    const newIds = new Set(result.news.map(n => n.id))
+                    const filteredPrev = prev.filter(n => !newIds.has(n.id))
+                    return [...filteredPrev, ...result.news]
+                })
                 setLastDoc(result.lastDoc)
             }
         } catch (error) {
@@ -44,7 +56,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
         } finally {
             setLoading(false)
         }
-    }, [loading, hasMore, lastDoc])
+    }, [loading, hasMore, lastDoc, allNews])
 
     // Observer para Scroll Infinito con carga anticipada (estilo Pinterest)
     useEffect(() => {
