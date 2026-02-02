@@ -94,49 +94,30 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 border border-transparent focus-within:border-primary/30 transition-all">
-              <Search className="w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar noticia..."
-                className="bg-transparent border-none focus:ring-0 text-sm w-40 placeholder:text-slate-400 ml-2"
-              />
-            </div>
-
-            <div className="flex items-center gap-4 border-l border-slate-200 dark:border-slate-700 pl-6">
-              <button
-                className="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors opa"
-                onClick={() => mounted && document.documentElement.classList.toggle('dark')}
-                aria-label="Toggle theme"
-              >
-                <Contrast className="w-5 h-5" />
-              </button>
-
-              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="lg:hidden p-0 h-auto hover:bg-transparent">
-                    <Menu className="w-6 h-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80">
-                  <SheetTitle className="flex items-center mb-8">
-                    <span className="text-2xl font-extrabold tracking-tighter">eldópolis<span className="text-primary">red</span></span>
-                  </SheetTitle>
-                  <nav className="flex flex-col space-y-4">
-                    {categories.map((cat) => (
-                      <Link
-                        key={cat.slug}
-                        href={cat.slug}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-sm font-bold uppercase tracking-widest text-slate-600 hover:text-primary"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-            </div>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="lg:hidden p-0 h-auto hover:bg-transparent">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80">
+                <SheetTitle className="flex items-center mb-8">
+                  <span className="text-2xl font-extrabold tracking-tighter">eldópolis<span className="text-primary">red</span></span>
+                </SheetTitle>
+                <nav className="flex flex-col space-y-4">
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.slug}
+                      href={cat.slug}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-sm font-bold uppercase tracking-widest text-slate-600 hover:text-primary"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
