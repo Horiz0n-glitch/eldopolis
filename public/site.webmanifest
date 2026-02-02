@@ -1,0 +1,15 @@
+{
+  "name": "Eldópolis",
+  "short_name": "Eldópolis",
+  "icons": [
+    {
+      "src": "https://pub-514df041e2b3494caab09827cb896071.r2.dev/Icono-web.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#1f2937",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

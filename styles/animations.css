@@ -1,0 +1,164 @@
+/* Mejorar las variables CSS para animaciones más fluidas */
+:root {
+  --header-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --header-duration: 600ms;
+  --smooth-scroll-behavior: smooth;
+  --micro-animation-duration: 300ms;
+  --bounce-easing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Optimización mejorada de hardware acceleration */
+[data-dolar-header],
+[data-main-header] {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Transiciones más fluidas para elementos interactivos */
+.smooth-transition {
+  transition: all var(--header-duration) var(--header-easing);
+}
+
+/* Nuevas animaciones micro para mejor feedback */
+.micro-bounce {
+  transition: transform var(--micro-animation-duration) var(--bounce-easing);
+}
+
+.micro-bounce:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.micro-bounce:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Mejorar las animaciones de botones */
+.button-smooth {
+  transition: all var(--micro-animation-duration) var(--header-easing);
+  transform: translateZ(0);
+}
+
+.button-smooth:hover {
+  transform: translateY(-1px) translateZ(0) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.button-smooth:active {
+  transform: translateY(0) translateZ(0) scale(0.95);
+  transition-duration: 150ms;
+}
+
+/* Optimización para dispositivos con menos potencia */
+@media (prefers-reduced-motion: reduce) {
+  [data-dolar-header],
+  [data-main-header],
+  .smooth-transition,
+  .micro-bounce,
+  .button-smooth {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Mejorar el scroll en navegadores webkit */
+html {
+  scroll-behavior: var(--smooth-scroll-behavior);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimización mejorada para pantallas de alta densidad */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  [data-dolar-header],
+  [data-main-header] {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Animaciones de entrada más suaves y naturales */
+.fade-slide-in {
+  animation: fadeSlideIn var(--header-duration) var(--header-easing) forwards;
+}
+
+.fade-slide-out {
+  animation: fadeSlideOut var(--header-duration) var(--header-easing) forwards;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+/* Micro-animaciones mejoradas para mejor feedback */
+.hover-lift {
+  transition: transform var(--micro-animation-duration) var(--header-easing);
+  transform: translateZ(0);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px) translateZ(0);
+}
+
+.hover-scale {
+  transition: transform var(--micro-animation-duration) var(--header-easing);
+  transform: translateZ(0);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05) translateZ(0);
+}
+
+.hover-scale:active {
+  transform: scale(0.95) translateZ(0);
+  transition-duration: 150ms;
+}
+
+/* Optimización para scroll en móviles mejorada */
+@supports (-webkit-overflow-scrolling: touch) {
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Nuevas animaciones para elementos que aparecen */
+.stagger-animation {
+  animation: staggerIn 0.6s var(--header-easing) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes staggerIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación suave para elementos que cambian de color */
+.color-transition {
+  transition: color var(--micro-animation-duration) var(--header-easing), background-color
+    var(--micro-animation-duration) var(--header-easing), border-color var(--micro-animation-duration)
+    var(--header-easing);
+}

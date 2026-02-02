@@ -1,0 +1,48 @@
+{
+  "name": "Eldópolis - Noticias de Eldorado",
+  "short_name": "Eldópolis",
+  "description": "Tu fuente confiable de noticias en Eldorado, Misiones",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["news", "lifestyle"],
+  "icons": [
+    {
+      "src": "https://pub-514df041e2b3494caab09827cb896071.r2.dev/Icono-web.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Últimas Noticias",
+      "short_name": "Noticias",
+      "description": "Ver las últimas noticias",
+      "url": "/",
+      "icons": [
+        {
+          "src": "https://pub-514df041e2b3494caab09827cb896071.r2.dev/Icono-web.ico",
+          "sizes": "16x16 32x32 48x48",
+          "type": "image/x-icon"
+        }
+      ]
+    },
+    {
+      "name": "Deportes",
+      "short_name": "Deportes",
+      "description": "Noticias deportivas",
+      "url": "/category/deporte",
+      "icons": [
+        {
+          "src": "https://pub-514df041e2b3494caab09827cb896071.r2.dev/Icono-web.ico",
+          "sizes": "16x16 32x32 48x48",
+          "type": "image/x-icon"
+        }
+      ]
+    }
+  ]
+}
