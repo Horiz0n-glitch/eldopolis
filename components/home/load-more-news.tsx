@@ -133,7 +133,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                     {/* Las noticias cargadas dinámicamente se muestran en grid para mejor consumo */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {allNews.slice(14).map((news) => (
-                            <div key={`${news.id}-grid`} className="opacity-0 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards">
+                            <div key={`${news.id}-grid`} className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards">
                                 <SmallNewsCard news={news} />
                             </div>
                         ))}

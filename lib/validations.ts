@@ -15,7 +15,7 @@ export const NewsSchema = z.object({
     imageUrl: z.string().optional(),
     imageCaption: z.string().optional(),
     featured: z.boolean().default(false),
-    featuredType: z.string().optional(),
+    featuredType: z.string().nullable().optional(),
     breaking: z.boolean().default(false),
     views: z.number().default(0),
     likes: z.number().default(0),
