@@ -129,12 +129,11 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                         </div>
                     )}
 
-                    {/* GRID INFINITO ESTILO PINTEREST */}
-                    {/* Las noticias cargadas dinámicamente se muestran en grid para mejor consumo */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* LISTA INFINITA ESTILO VERTICAL (Igual al de arriba) */}
+                    <div className="space-y-10">
                         {allNews.slice(14).map((news) => (
-                            <div key={`${news.id}-grid`} className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards">
-                                <SmallNewsCard news={news} />
+                            <div key={`${news.id}-list`} className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards">
+                                <MediumNewsCard news={news} />
                             </div>
                         ))}
                     </div>
