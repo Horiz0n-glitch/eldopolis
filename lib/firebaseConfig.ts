@@ -20,6 +20,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:717028258044:web:c51f96a21be2a33b332779",
 }
 
+console.log('Firebase Config Loaded:', firebaseConfig);
+
 // Validate that all required config values are present
 const validateFirebaseConfig = () => {
   const requiredKeys = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"]

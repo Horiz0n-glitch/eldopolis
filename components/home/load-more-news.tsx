@@ -25,7 +25,13 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
 
     // Función para cargar más noticias
     const loadMore = useCallback(async () => {
-        if (loading || !hasMore) return
+        console.log("🔄 loadMore triggered", { loading, hasMore, newsCount: allNews.length, hasLastDoc: !!lastDoc });
+
+        if (loading || !hasMore) {
+            console.log("🛑 loadMore blocked", { loading, hasMore });
+            return;
+        }
+
         setLoading(true)
 
         try {
@@ -36,23 +42,31 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
             if (!lastDoc && allNews.length > 0) {
                 const lastNews = allNews[allNews.length - 1]
                 currentLastDate = lastNews.date
+                console.log("📅 Using lastDate fallback:", currentLastDate);
             }
+
+            console.log("🚀 Calling getNewsOptimized...", { lastDocId: lastDoc?.id, currentLastDate });
 
             const result = await getNewsOptimized(12, lastDoc, currentLastDate)
 
+            console.log("📦 getNewsOptimized result:", { count: result.news.length, hasMore: result.hasMore });
+
             if (result.news.length === 0) {
+                console.log("⚠️ No more news received.");
                 setHasMore(false)
             } else {
                 // Filtrar duplicados por si acaso (aunque Firebase no deberia devolverlos si la paginacion funciona bien)
                 setAllNews(prev => {
                     const newIds = new Set(result.news.map(n => n.id))
                     const filteredPrev = prev.filter(n => !newIds.has(n.id))
-                    return [...filteredPrev, ...result.news]
+                    const nextState = [...filteredPrev, ...result.news];
+                    console.log(`✅ Updating news state. Old: ${prev.length}, New: ${result.news.length}, Total: ${nextState.length}`);
+                    return nextState;
                 })
                 setLastDoc(result.lastDoc)
             }
         } catch (error) {
-            console.error("Error loading more news:", error)
+            console.error("❌ Error loading more news:", error)
         } finally {
             setLoading(false)
         }
@@ -62,7 +76,10 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading) {
+                const entry = entries[0];
+                // console.log("👁️ Observer entry:", { isIntersecting: entry.isIntersecting, ratio: entry.intersectionRatio });
+                if (entry.isIntersecting && hasMore && !loading) {
+                    console.log("🟢 Observer intersection detected -> Calling loadMore()");
                     loadMore()
                 }
             },
@@ -74,6 +91,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current)
+            console.log("👀 Observer attached to loaderRef");
         }
 
         return () => observer.disconnect()

@@ -149,7 +149,7 @@ export async function getNewsOptimized(
   }
 
   try {
-    console.log(`[SERVER] Fetching news. PageSize: ${pageSize}, hasLastDoc: ${!!lastDoc}, hasLastDate: ${!!lastDate}`)
+    console.log(`[CLIENT-API] Fetching news. PageSize: ${pageSize}, hasLastDoc: ${!!lastDoc}, hasLastDate: ${!!lastDate}`)
 
     // Consulta básica
     let newsQuery = query(
@@ -159,6 +159,7 @@ export async function getNewsOptimized(
     )
 
     if (lastDoc) {
+      console.log("[CLIENT-API] Building query with lastDoc");
       newsQuery = query(
         collection(db, "news"),
         orderBy("date", "desc"),
@@ -168,12 +169,15 @@ export async function getNewsOptimized(
     } else if (lastDate) {
       // Fallback para paginación basada en fecha (útil tras SSR inicial)
       // Asumiendo que 'date' en Firestore es Timestamp o compatible con Date
+      console.log(`[CLIENT-API] Building query with lastDate (as Date): ${lastDate}`);
       newsQuery = query(
         collection(db, "news"),
         orderBy("date", "desc"),
-        startAfter(new Date(lastDate)), // Firestore SDK convierte Date a Timestamp automáticamente en comparaciones
+        startAfter(new Date(lastDate)),
         limit(pageSize),
       )
+    } else {
+      console.log("[CLIENT-API] Building initial query (no cursor)");
     }
 
     const snapshot = await getDocs(newsQuery)
