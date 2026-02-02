@@ -24,13 +24,16 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [dollarRates, setDollarRates] = useState<Rate[]>([
+
+  // Usar dollarRates como referencia estática para el primer render
+  const initialDollarRates = [
     { name: "Dólar MEP", sell: 1150, change: "+0.5%" },
     { name: "Dólar CCL", sell: 1160, change: "+0.2%" },
     { name: "Blue", sell: 1220, change: "-0.8%" },
     { name: "Oficial", sell: 1020, change: "—" },
     { name: "Cripto", sell: 1185, change: "+1.1%" },
-  ])
+  ]
+  const [dollarRates, setDollarRates] = useState<Rate[]>(initialDollarRates)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,7 +47,7 @@ export default function Header() {
   return (
     <>
       {/* Ticker Bar */}
-      <div className="bg-slate-900 text-white overflow-hidden border-b border-white/10 h-10 flex items-center">
+      <div suppressHydrationWarning className="bg-slate-900 text-white overflow-hidden border-b border-white/10 h-10 flex items-center">
         <div className="max-w-[1440px] mx-auto relative flex items-center w-full">
           <div className="absolute left-0 z-10 bg-slate-900 px-6 h-full flex items-center text-[10px] font-bold tracking-widest uppercase border-r border-white/10">
             Mercados
@@ -63,7 +66,7 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <header className={`sticky top-0 z-40 transition-all duration-300 ${isScrolled
+      <header suppressHydrationWarning className={`sticky top-0 z-40 transition-all duration-300 ${isScrolled
         ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm h-16"
         : "bg-white dark:bg-slate-900 h-20"
         } border-b border-slate-100 dark:border-slate-800`}>
