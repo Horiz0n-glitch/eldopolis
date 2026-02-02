@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 60 // Revalidate every minute
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { news } = await getNewsOptimized(60)
+  const { news } = await getNewsOptimized(15)
   const coverNews = news.find(n => n.featuredType === "cover") || news[0]
 
   if (!coverNews) return {}
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const result = await getNewsOptimized(60)
+  const result = await getNewsOptimized(15)
 
   // Procesar URLs de imagen y ordenar noticias en el servidor
   const processedNews = result.news.map((item) => ({

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Loader2, ChevronDown, TrendingUp, Mail } from "lucide-react"
+import { Loader2, ChevronDown, TrendingUp } from "lucide-react"
 import type { News } from "@/lib/validations"
 import { HeroSection } from "./hero-section"
 import { SmallNewsCard } from "@/components/small-news-card"
@@ -15,101 +15,104 @@ interface LoadMoreNewsProps {
     initialNews: News[]
 }
 
-interface NewsGroup {
-    news: News[]
-    loaded: boolean
-    loading: boolean
-}
-
 export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
-    const [newsGroups, setNewsGroups] = useState<NewsGroup[]>([
-        { news: initialNews, loaded: true, loading: false },
-        { news: [], loaded: false, loading: false },
-        { news: [], loaded: false, loading: false },
-    ])
+    const [allNews, setAllNews] = useState<News[]>(initialNews)
+    const [loading, setLoading] = useState(false)
+    const [hasMore, setHasMore] = useState(true)
     const [lastDoc, setLastDoc] = useState<any>(null)
+    const loaderRef = useRef<HTMLDivElement>(null)
 
-    const handleLoadMore = useCallback(async (groupIndex: number) => {
-        if (newsGroups[groupIndex].loading) return
-
-        setNewsGroups((prev) =>
-            prev.map((group, index) => (index === groupIndex ? { ...group, loading: true } : group)),
-        )
+    // Función para cargar más noticias
+    const loadMore = useCallback(async () => {
+        if (loading || !hasMore) return
+        setLoading(true)
 
         try {
-            const result = await getNewsOptimized(20, lastDoc)
-            setNewsGroups((prev) =>
-                prev.map((group, index) =>
-                    index === groupIndex ? { news: result.news, loaded: true, loading: false } : group,
-                ),
-            )
-            setLastDoc(result.lastDoc)
+            // Usamos las últimas noticias cargadas para obtener el marcador de paginación si no tenemos lastDoc directo
+            // Aquí asumo que getNewsOptimized maneja el cursor internamente o necesita el ID
+            const result = await getNewsOptimized(12, lastDoc)
+
+            if (result.news.length === 0) {
+                setHasMore(false)
+            } else {
+                setAllNews(prev => [...prev, ...result.news])
+                setLastDoc(result.lastDoc)
+            }
         } catch (error) {
             console.error("Error loading more news:", error)
-            setNewsGroups((prev) =>
-                prev.map((group, index) => (index === groupIndex ? { ...group, loading: false } : group)),
-            )
+        } finally {
+            setLoading(false)
         }
-    }, [newsGroups, lastDoc])
+    }, [loading, hasMore, lastDoc])
 
-    const trends = initialNews.slice(0, 5)
+    // Observer para Scroll Infinito
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loading) {
+                    loadMore()
+                }
+            },
+            { threshold: 0.1 }
+        )
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current)
+        }
+
+        return () => observer.disconnect()
+    }, [loadMore, hasMore, loading])
+
+    const trends = allNews.slice(0, 5)
 
     return (
         <div className="space-y-16">
-            {/* Sección 1: Hero section */}
-            <HeroSection news={newsGroups[0].news} />
+            {/* Sección 1: Hero section (siempre con las primeras noticias) */}
+            <HeroSection news={allNews.slice(0, 8)} />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 px-4 md:px-12 lg:px-20">
                 {/* Main Content Area */}
                 <div className="lg:col-span-8 space-y-12">
                     <div className="space-y-12">
-                        {/* Primeras noticias post-hero */}
+                        {/* Noticias Principales (Post-Hero) */}
                         <div className="space-y-12">
-                            {newsGroups[0].news.slice(3, 8).map((news) => (
-                                <MediumNewsCard key={news.id} news={news} />
+                            {allNews.slice(8, 15).map((news) => (
+                                <MediumNewsCard key={`${news.id}-${news.title}`} news={news} />
                             ))}
                         </div>
 
-                        {/* Fila de tarjetas pequeñas (antes sección deportes) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 py-8 border-y border-slate-50 dark:border-slate-800/50">
-                            {newsGroups[0].news.slice(8, 12).map((news) => (
-                                <SmallNewsCard key={news.id} news={news} />
-                            ))}
-                        </div>
+                        {/* Separador con noticias pequeñas si hay suficientes */}
+                        {allNews.length >= 20 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 py-8 border-y border-slate-50 dark:border-slate-800/50">
+                                {allNews.slice(15, 19).map((news) => (
+                                    <SmallNewsCard key={`${news.id}-${news.title}`} news={news} />
+                                ))}
+                            </div>
+                        )}
 
-                        {/* Resto de las noticias iniciales */}
+                        {/* El resto de las noticias cargadas dinámicamente */}
                         <div className="space-y-12">
-                            {newsGroups[0].news.slice(12).map((news) => (
-                                <MediumNewsCard key={news.id} news={news} />
+                            {allNews.slice(allNews.length >= 20 ? 19 : 15).map((news) => (
+                                <MediumNewsCard key={`${news.id}-${news.title}`} news={news} />
                             ))}
                         </div>
                     </div>
 
-                    {/* Botón Cargar Más */}
-                    {!newsGroups[1].loaded && (
-                        <div className="flex justify-center pt-8">
-                            <Button
-                                onClick={() => handleLoadMore(1)}
-                                disabled={newsGroups[1].loading}
-                                className="group px-10 py-6 bg-primary hover:bg-red-700 text-white rounded-full font-bold text-sm tracking-widest uppercase transition-all shadow-lg hover:shadow-primary/30 flex items-center gap-3 h-auto"
-                            >
-                                {newsGroups[1].loading ? <Loader2 className="animate-spin" /> : "Cargar Más Historias"}
-                                <span className="material-symbols-outlined group-hover:translate-y-1 transition-transform">keyboard_arrow_down</span>
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Grupo 2 cargado */}
-                    {newsGroups[1].loaded && (
-                        <div className="space-y-12">
-                            {newsGroups[1].news.map((news) => (
-                                <MediumNewsCard key={news.id} news={news} />
-                            ))}
-                        </div>
-                    )}
+                    {/* Indicador de carga / Trigger para Intersection Observer */}
+                    <div ref={loaderRef} className="flex justify-center pt-12 min-h-[100px]">
+                        {loading && (
+                            <div className="flex flex-col items-center gap-4">
+                                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                                <p className="text-sm font-medium text-slate-500 animate-pulse">Cargando más historias...</p>
+                            </div>
+                        )}
+                        {!hasMore && allNews.length > 0 && (
+                            <p className="text-sm font-medium text-slate-400">Has llegado al final de las noticias</p>
+                        )}
+                    </div>
                 </div>
 
-                {/* Sidebar */}
+                {/* Sidebar (Sticky) */}
                 <aside className="lg:col-span-4 space-y-12 h-fit lg:sticky lg:top-32">
                     {/* Tendencia */}
                     <div className="bg-white dark:bg-slate-800/50 p-8 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
@@ -124,7 +127,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                                         {String(i + 1).padStart(2, '0')}
                                     </span>
                                     <div>
-                                        <h4 className="text-sm font-bold leading-tight line-clamp-2 transition-colors mb-1">
+                                        <h4 className="text-sm font-bold leading-tight line-clamp-2 transition-colors mb-1 group-hover:text-primary">
                                             {item.title}
                                         </h4>
                                     </div>
@@ -133,7 +136,7 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                         </div>
                     </div>
 
-                    {/* Clima Simulado */}
+                    {/* Clima */}
                     <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-xl text-white shadow-xl">
                         <div className="flex justify-between items-start mb-6">
                             <div>
@@ -148,7 +151,6 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                         </div>
                     </div>
 
-                    {/* Ad Reference */}
                     <AdPlaceholder height="250px" text="Publicidad" />
                 </aside>
             </div>
