@@ -287,7 +287,21 @@ export async function getNewsByCategoryOptimized(
   lastDoc: QueryDocumentSnapshot<DocumentData> | null
   hasMore: boolean
 }> {
-  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()
+  // Mapa de slugs a nombres de categoría reales en Firestore
+  const categoryMap: Record<string, string> = {
+    "politica": "Política",
+    "economia": "Economía",
+    "policiales": "Policiales",
+    "deportes": "Deportes",
+    "sociedad": "Sociedad",
+    "espectaculos": "Espectáculos",
+    "deporte": "Deportes", // Alias
+    "futas": "Futas", // ?
+  };
+
+  const lowerCat = category.toLowerCase();
+  const normalizedCategory = categoryMap[lowerCat] || (category.charAt(0).toUpperCase() + category.slice(1).toLowerCase())
+
   console.log(`[SERVER]\t📦 Consultando Firestore por categoría (SSR): ${category} -> ${normalizedCategory}`)
 
   const returnFallbackData = () => {
@@ -551,8 +565,19 @@ export async function getRelatedNews(
   tags: string[] = [],
   limitCount = 4,
 ): Promise<News[]> {
-  // Normalizar categoría y tags
-  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()
+  // Normalizar categoría y tags usando mapa de acentos
+  const categoryMap: Record<string, string> = {
+    "politica": "Política",
+    "economia": "Economía",
+    "policiales": "Policiales",
+    "deportes": "Deportes",
+    "sociedad": "Sociedad",
+    "espectaculos": "Espectáculos",
+    "deporte": "Deportes",
+  };
+
+  const lowerCat = category.toLowerCase();
+  const normalizedCategory = categoryMap[lowerCat] || (category.charAt(0).toUpperCase() + category.slice(1).toLowerCase())
   const normalizedTags = tags.map((tag) => tag.toLowerCase())
   const cacheKey = `related-${newsId}-${normalizedCategory}-${normalizedTags.join(",")}-${limitCount}`
   const cached = getFromCache<News[]>(cacheKey)
