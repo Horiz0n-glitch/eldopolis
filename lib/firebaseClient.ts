@@ -1,5 +1,5 @@
-import { initializeApp, type FirebaseApp } from "firebase/app"
-import { getFirestore, type Firestore } from "firebase/firestore"
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app"
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore } from "firebase/firestore"
 import { getAnalytics, type Analytics } from "firebase/analytics"
 
 let app: FirebaseApp | null = null
@@ -25,8 +25,14 @@ export function initializeFirebase() {
 
     // Initialize only once
     if (!app) {
-      app = initializeApp(firebaseConfig)
-      db = getFirestore(app)
+      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+
+      // Habilitar persistencia de caché local
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+        })
+      })
 
       // Initialize analytics only in browser and production
       if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
@@ -37,7 +43,7 @@ export function initializeFirebase() {
         }
       }
 
-      console.log("Firebase initialized successfully")
+      console.log("Firebase initialized successfully with PERSISTENCE")
     }
 
     return { app, db, analytics }

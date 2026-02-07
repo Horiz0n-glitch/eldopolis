@@ -249,28 +249,26 @@ export async function getNewsOptimized(
 }
 
 
-// Firebase connectivity test function
+// Firebase connectivity test function with internal cache
+let connectivityStatus: { lastChecked: number; status: boolean } | null = null
 async function testFirebaseConnectivity(): Promise<boolean> {
-  if (!db) {
-    console.log("[SERVER]\t❌ Firebase DB not initialized")
-    return false
+  if (!db) return false
+
+  if (connectivityStatus && Date.now() - connectivityStatus.lastChecked < 5 * 60 * 1000) {
+    return connectivityStatus.status
   }
 
   try {
-    console.log("[SERVER]\t🔍 Testing Firebase connectivity...")
     const testQuery = query(collection(db, "news"), limit(1))
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error("Connectivity test timeout")), 3000)
     })
 
     await Promise.race([getDocs(testQuery), timeoutPromise])
-    console.log("[SERVER]\t✅ Firebase connectivity test passed")
+    connectivityStatus = { lastChecked: Date.now(), status: true }
     return true
   } catch (error) {
-    console.log(
-      "[SERVER]\t❌ Firebase connectivity test failed:",
-      error instanceof Error ? error.message : "Unknown error",
-    )
+    connectivityStatus = { lastChecked: Date.now(), status: false }
     return false
   }
 }
@@ -461,67 +459,76 @@ export async function getNewsByTagOptimized(
 /**
  * Obtener todas las publicidades activas - EXPORT AGREGADO
  */
+let adsPromise: Promise<Record<string, Publicidad[]>> | null = null;
 export async function getAllAds(): Promise<Record<string, Publicidad[]>> {
   const cacheKey = "all-ads-active-record"
   const cached = getFromCache<Record<string, Publicidad[]>>(cacheKey, "ads")
 
   if (cached) {
-    console.log("[SERVER] 📦 Cache hit for ads record")
     return cached
   }
 
-  try {
-    const now = new Date()
-
-    // Intentar obtener de ambas posibles colecciones individualmente para evitar fallos por permisos
-    let publicidadesDocs: any[] = []
-    let advertisementsDocs: any[] = []
-
-    try {
-      const snap = await getDocs(collection(db, "publicidad"))
-      publicidadesDocs = snap.docs
-    } catch (e) {
-      console.warn("[SERVER] No permissions for 'publicidad' collection, skipping.")
-    }
-
-    try {
-      const snap = await getDocs(collection(db, "advertisements"))
-      advertisementsDocs = snap.docs
-    } catch (e) {
-      console.warn("[SERVER] No permissions for 'advertisements' collection, skipping.")
-    }
-
-    const allAdsArray = [
-      ...publicidadesDocs.map(convertFirestoreToAd),
-      ...advertisementsDocs.map(convertFirestoreToAd)
-    ].filter((ad: Publicidad) => {
-      if (ad.isActive === false) return false
-      const startDate = ad.startDate ? new Date(ad.startDate) : null
-      const endDate = ad.endDate ? new Date(ad.endDate) : null
-      if (startDate && now < startDate) return false
-      if (endDate && now > endDate) return false
-      return true
-    }).sort((a, b) => (b.priority || 0) - (a.priority || 0))
-
-    // Agrupar por categoría/posición
-    const groupedAds: Record<string, Publicidad[]> = {
-      all: allAdsArray
-    }
-
-    allAdsArray.forEach(ad => {
-      const cat = ad.category || ad.position || "otros"
-      if (!groupedAds[cat]) groupedAds[cat] = []
-      groupedAds[cat].push(ad)
-    })
-
-    setCache(cacheKey, groupedAds, "ads")
-    console.log(`✅ Fetched and grouped ${allAdsArray.length} ads into ${Object.keys(groupedAds).length} categories`)
-
-    return groupedAds
-  } catch (error) {
-    console.error("Error fetching ads:", error)
-    return { all: [] }
+  // Si ya hay una petición en curso, esperar a esa
+  if (adsPromise) {
+    return adsPromise;
   }
+
+  adsPromise = (async () => {
+    try {
+      const now = new Date()
+
+      // Intentar obtener de ambas posibles colecciones individualmente para evitar fallos por permisos
+      let publicidadesDocs: any[] = []
+      let advertisementsDocs: any[] = []
+
+      try {
+        const snap = await getDocs(collection(db, "publicidad"))
+        publicidadesDocs = snap.docs
+      } catch (e) {
+        console.warn("[SERVER] No permissions for 'publicidad' collection, skipping.")
+      }
+
+      try {
+        const snap = await getDocs(collection(db, "advertisements"))
+        advertisementsDocs = snap.docs
+      } catch (e) {
+        console.warn("[SERVER] No permissions for 'advertisements' collection, skipping.")
+      }
+
+      const allAdsArray = [
+        ...publicidadesDocs.map(convertFirestoreToAd),
+        ...advertisementsDocs.map(convertFirestoreToAd)
+      ].filter((ad: Publicidad) => {
+        if (ad.isActive === false) return false
+        const startDate = ad.startDate ? new Date(ad.startDate) : null
+        const endDate = ad.endDate ? new Date(ad.endDate) : null
+        if (startDate && now < startDate) return false
+        if (endDate && now > endDate) return false
+        return true
+      }).sort((a, b) => (b.priority || 0) - (a.priority || 0))
+
+      // Agrupar por categoría/posición
+      const groupedAds: Record<string, Publicidad[]> = {
+        all: allAdsArray
+      }
+
+      allAdsArray.forEach(ad => {
+        const cat = ad.category || ad.position || "otros"
+        if (!groupedAds[cat]) groupedAds[cat] = []
+        groupedAds[cat].push(ad)
+      })
+
+      setCache(cacheKey, groupedAds, "ads")
+      return groupedAds
+    } catch (error) {
+      console.error("Error fetching ads:", error)
+      return { all: [] }
+    } finally {
+      adsPromise = null
+    }
+  })()
+
+  return adsPromise
 }
 
 /**

@@ -17,12 +17,12 @@ class CacheManager {
   private readonly MAX_MEMORY_CACHE_SIZE = 50
 
   private readonly CACHE_CONFIGS = {
-    news: { ttl: 15 * 60 * 1000, version: "1.1" },
-    categories: { ttl: 30 * 60 * 1000, version: "1.1" },
-    ads: { ttl: 45 * 60 * 1000, version: "1.1" },
-    tags: { ttl: 8 * 60 * 1000, version: "1.1" },
-    currency: { ttl: 30 * 60 * 1000, version: "1.1" },
-    static: { ttl: 60 * 60 * 1000, version: "1.1" },
+    news: { ttl: 20 * 60 * 1000, version: "1.2" },
+    categories: { ttl: 60 * 60 * 1000, version: "1.2" },
+    ads: { ttl: 120 * 60 * 1000, version: "1.2" },
+    tags: { ttl: 30 * 60 * 1000, version: "1.2" },
+    currency: { ttl: 120 * 60 * 1000, version: "1.2" },
+    static: { ttl: 240 * 60 * 1000, version: "1.2" },
   }
 
   static getInstance(): CacheManager {
@@ -33,7 +33,7 @@ class CacheManager {
   }
 
   private getConfig(type: keyof typeof this.CACHE_CONFIGS) {
-    return this.CACHE_CONFIGS[type]
+    return this.CACHE_CONFIGS[type] || this.CACHE_CONFIGS.static
   }
 
   set<T>(key: string, data: T, type: keyof typeof this.CACHE_CONFIGS = "static"): void {
@@ -45,30 +45,29 @@ class CacheManager {
       ttl: config.ttl,
     }
 
-    if (type === "news" || type === "currency" || type === "categories") {
-      this.setMemoryCache(key, cacheItem)
-    }
+    // Siempre guardar en memoria para acceso rápido
+    this.setMemoryCache(key, cacheItem)
 
-    // Solo usar localStorage para datos menos frecuentes
-    if (typeof window !== "undefined" && (type === "static" || type === "ads" || type === "tags")) {
+    // Guardar en localStorage para persistencia entre sesiones/recargas
+    if (typeof window !== "undefined") {
       try {
         const serialized = JSON.stringify(cacheItem)
         const compressed = this.compress(serialized)
         localStorage.setItem(key, compressed)
       } catch (error) {
-        console.warn("Cache set failed:", error)
+        // Si falla por espacio, limpiar expirados e intentar uno pequeño
+        console.warn("Cache set failed (likely quota), clearing expired items")
         this.clearExpired()
       }
     }
   }
 
   get<T>(key: string, type: keyof typeof this.CACHE_CONFIGS = "static"): T | null {
-    if (type === "news" || type === "currency" || type === "categories") {
-      const memoryResult = this.getMemoryCache<T>(key, type)
-      if (memoryResult !== null) return memoryResult
-    }
+    // 1. Primero intentar memoria (más rápido)
+    const memoryResult = this.getMemoryCache<T>(key, type)
+    if (memoryResult !== null) return memoryResult
 
-    // Luego verificar localStorage
+    // 2. Si no está en memoria, verificar localStorage (cliente)
     if (typeof window === "undefined") return null
 
     try {
@@ -92,6 +91,8 @@ class CacheManager {
         return null
       }
 
+      // Si es válido, subir a memoria para la próxima vez
+      this.setMemoryCache(key, cacheItem)
       return cacheItem.data
     } catch (error) {
       console.warn("Cache get failed:", error)
