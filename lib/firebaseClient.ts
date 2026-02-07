@@ -15,7 +15,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-export function initializeFirebase() {
+export async function initializeFirebase() {
   try {
     // Validate required config
     if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
@@ -25,17 +25,18 @@ export function initializeFirebase() {
 
     // Initialize only once
     if (!app) {
-      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+      // Use the singleton instances from configuration
+      // We import dynamically to avoid circular dependencies if any, 
+      // but here we can just assign the imported values if we modify the imports.
+      // However, to keep it clean, let's just use the values we imported or will import.
 
-      // Habilitar persistencia de caché local
-      db = initializeFirestore(app, {
-        localCache: persistentLocalCache({
-          tabManager: persistentMultipleTabManager()
-        })
-      })
+      // Since we want to use the existing initialization from firebaseConfig:
+      const config = await import("./firebaseConfig")
+      app = config.app
+      db = config.db
 
       // Initialize analytics only in browser and production
-      if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
+      if (typeof window !== "undefined" && process.env.NODE_ENV === "production" && app) {
         try {
           analytics = getAnalytics(app)
         } catch (error) {
@@ -43,7 +44,7 @@ export function initializeFirebase() {
         }
       }
 
-      console.log("Firebase initialized successfully with PERSISTENCE")
+      console.log("Firebase initialized successfully (reused from config)")
     }
 
     return { app, db, analytics }

@@ -10,6 +10,9 @@ import { SmallNewsCard } from "@/components/small-news-card"
 import { MediumNewsCard } from "@/components/medium-news-card"
 import { getNewsOptimized } from "@/lib/firebase-optimized"
 import AdPlaceholder from "@/components/Publi/AdPlaceholder"
+import OptimizedMediumAdCard from "@/components/Publi/OptimizedMediumAdCard"
+import OptimizedLargeAdCard from "@/components/Publi/OptimizedLargeAdCard"
+import SmallAdCard from "@/components/Publi/SmallAdCard"
 import { WeatherWidget } from "@/components/weather-widget"
 
 interface LoadMoreNewsProps {
@@ -27,8 +30,8 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
     const loadMore = useCallback(async () => {
         console.log("🔄 loadMore triggered", { loading, hasMore, newsCount: allNews.length, hasLastDoc: !!lastDoc });
 
-        if (loading || !hasMore) {
-            console.log("🛑 loadMore blocked", { loading, hasMore });
+        if (loading || !hasMore || allNews.length >= 40) {
+            console.log("🛑 loadMore blocked", { loading, hasMore, limitReached: allNews.length >= 40 });
             return;
         }
 
@@ -55,11 +58,17 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                 console.log("⚠️ No more news received.");
                 setHasMore(false)
             } else {
-                // Filtrar duplicados por si acaso (aunque Firebase no deberia devolverlos si la paginacion funciona bien)
+                // Filtrar duplicados por si acaso
                 setAllNews(prev => {
                     const newIds = new Set(result.news.map(n => n.id))
                     const filteredPrev = prev.filter(n => !newIds.has(n.id))
-                    const nextState = [...filteredPrev, ...result.news];
+                    let nextState = [...filteredPrev, ...result.news];
+
+                    // Limitar a 40 artículos
+                    if (nextState.length >= 40) {
+                        nextState = nextState.slice(0, 40)
+                    }
+
                     console.log(`✅ Updating news state. Old: ${prev.length}, New: ${result.news.length}, Total: ${nextState.length}`);
                     return nextState;
                 })
@@ -71,6 +80,13 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
             setLoading(false)
         }
     }, [loading, hasMore, lastDoc, allNews])
+
+    // Limite de seguridad de 40 artículos
+    useEffect(() => {
+        if (allNews.length >= 40 && hasMore) {
+            setHasMore(false)
+        }
+    }, [allNews.length, hasMore])
 
     // Observer para Scroll Infinito con carga anticipada (estilo Pinterest)
     useEffect(() => {
@@ -110,8 +126,21 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
 
                     {/* Noticias Principales (Post-Hero) - Lista Vertical Clásica */}
                     <div className="space-y-10">
-                        {allNews.slice(8, 14).map((news) => (
-                            <MediumNewsCard key={`${news.id}-main`} news={news} />
+                        {/* Banner de Publicidad Grande */}
+                        <div className="w-full">
+                            <OptimizedLargeAdCard />
+                        </div>
+
+                        {allNews.slice(8, 14).map((news, index) => (
+                            <div key={`${news.id}-main`} className="space-y-10">
+                                <MediumNewsCard news={news} />
+                                {/* Insertar publicidad cada 3 noticias en este bloque */}
+                                {(index + 1) % 3 === 0 && index !== allNews.slice(8, 14).length - 1 && (
+                                    <div className="w-full py-2">
+                                        <OptimizedLargeAdCard />
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
 
@@ -131,9 +160,15 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
 
                     {/* LISTA INFINITA ESTILO VERTICAL (Igual al de arriba) */}
                     <div className="space-y-10">
-                        {allNews.slice(14).map((news) => (
-                            <div key={`${news.id}-list`} className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards">
+                        {allNews.slice(14).map((news, index) => (
+                            <div key={`${news.id}-list`} className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards space-y-10">
                                 <MediumNewsCard news={news} />
+                                {/* Insertar publicidad cada 5 noticias en el scroll infinito */}
+                                {(index + 1) % 5 === 0 && index !== allNews.slice(14).length - 1 && (
+                                    <div className="w-full py-2">
+                                        <OptimizedLargeAdCard />
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -173,7 +208,8 @@ export function LoadMoreNews({ initialNews }: LoadMoreNewsProps) {
                     {/* Clima */}
                     <WeatherWidget />
 
-                    <AdPlaceholder height="300px" text="Publicidad" />
+                    <OptimizedMediumAdCard />
+                    <SmallAdCard />
                 </aside>
             </div>
         </div>

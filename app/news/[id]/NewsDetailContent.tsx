@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
 import { parseDraftJSContent, groupShortParagraphs } from "@/utils/draftjs-parser"
 import AdPlaceholder from "@/components/Publi/AdPlaceholder"
+import SmallAdCard from "@/components/Publi/SmallAdCard"
 import { convertirURL } from "@/lib/image-utils"
 import { ImageLightbox } from "@/components/ImageLightbox"
 
@@ -306,7 +307,7 @@ export default function NewsDetailContent({
               </div>
             </div>
 
-            <AdPlaceholder height="300px" text="Publicidad" />
+            <SmallAdCard />
 
           </aside>
         </div>

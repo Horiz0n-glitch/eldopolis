@@ -35,14 +35,20 @@ export function CurrencyCard() {
         throw new Error(`Error del servidor: ${response.status}`)
       }
 
-      const rates = await response.json()
+      const json = await response.json()
 
-      setCurrencyData([
-        { ...rates.oficial, nombre: "Dólar Oficial" },
-        { ...rates.blue, nombre: "Dólar Blue" },
-        { ...rates.tarjeta, nombre: "Dólar Tarjeta" },
-        { ...rates.mep, nombre: "Dólar MEP" },
-      ])
+      if (json.ok && Array.isArray(json.data)) {
+        const rates = json.data.map((r: any) => ({
+          nombre: r.name,
+          compra: r.buy,
+          venta: r.sell,
+          fechaActualizacion: json.updatedAt,
+          variacion: 0 // API doesn't provide variation yet
+        }))
+        setCurrencyData(rates)
+      } else {
+        throw new Error("Formato de respuesta inválido")
+      }
       setLastUpdateTime(new Date())
     } catch (error) {
       console.error("Error fetching currency data:", error)
@@ -113,44 +119,44 @@ export function CurrencyCard() {
         <div className="space-y-3">
           {loading
             ? Array(4)
-                .fill(0)
-                .map((_, index) => (
-                  <div key={index} className="bg-white rounded-lg p-3 border border-red-200 animate-pulse">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-6 w-6 bg-red-200 rounded"></div>
-                      <div className="flex-1">
-                        <div className="h-3 bg-red-200 rounded w-20 mb-1"></div>
-                        <div className="h-2 bg-red-200 rounded w-32"></div>
-                      </div>
+              .fill(0)
+              .map((_, index) => (
+                <div key={index} className="bg-white rounded-lg p-3 border border-red-200 animate-pulse">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-6 w-6 bg-red-200 rounded"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-red-200 rounded w-20 mb-1"></div>
+                      <div className="h-2 bg-red-200 rounded w-32"></div>
                     </div>
-                  </div>
-                ))
-            : currencyData.map((currency) => (
-                <div
-                  key={currency.nombre}
-                  className="bg-white rounded-lg p-3 border border-red-200 hover:border-red-300 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-6 h-6 bg-red-100 rounded">
-                        <DollarSign className="h-3 w-3 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{currency.nombre}</p>
-                        <p className="text-xs text-gray-600">
-                          C: {formatCurrency(currency.compra)} | V: {formatCurrency(currency.venta)}
-                        </p>
-                      </div>
-                    </div>
-                    {currency.variacion !== undefined && (
-                      <div className={`flex items-center ${getVariationColor(currency.variacion)}`}>
-                        {getVariationIcon(currency.variacion)}
-                        <span className="text-xs ml-1">{currency.variacion.toFixed(2)}%</span>
-                      </div>
-                    )}
                   </div>
                 </div>
-              ))}
+              ))
+            : currencyData.map((currency) => (
+              <div
+                key={currency.nombre}
+                className="bg-white rounded-lg p-3 border border-red-200 hover:border-red-300 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-6 h-6 bg-red-100 rounded">
+                      <DollarSign className="h-3 w-3 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{currency.nombre}</p>
+                      <p className="text-xs text-gray-600">
+                        C: {formatCurrency(currency.compra)} | V: {formatCurrency(currency.venta)}
+                      </p>
+                    </div>
+                  </div>
+                  {currency.variacion !== undefined && (
+                    <div className={`flex items-center ${getVariationColor(currency.variacion)}`}>
+                      {getVariationIcon(currency.variacion)}
+                      <span className="text-xs ml-1">{currency.variacion.toFixed(2)}%</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
         </div>
       )}
 

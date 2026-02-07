@@ -507,15 +507,34 @@ export async function getAllAds(): Promise<Record<string, Publicidad[]>> {
         return true
       }).sort((a, b) => (b.priority || 0) - (a.priority || 0))
 
-      // Agrupar por categoría/posición
+      // Función helper para normalizar categorías
+      const normalizeCategory = (cat: string) => {
+        const lower = cat.toLowerCase().trim()
+        if (lower === "sidebar" || lower === "lateral" || lower === "columna") return "Sidebar"
+        if (lower.includes("grande")) return "Grande Principal" // Match simplificado
+        if (lower.includes("mediana")) return "Mediana Principal" // Match simplificado
+        if (lower.includes("pequeña") || lower.includes("pequena")) return "Pequeña Principal" // Match simplificado
+        return cat
+      }
+
+      // Agrupar por categoría/posición normalizada
       const groupedAds: Record<string, Publicidad[]> = {
         all: allAdsArray
       }
 
       allAdsArray.forEach(ad => {
-        const cat = ad.category || ad.position || "otros"
-        if (!groupedAds[cat]) groupedAds[cat] = []
-        groupedAds[cat].push(ad)
+        const rawCat = ad.category || ad.position || "otros"
+        const normalizedCat = normalizeCategory(rawCat)
+
+        // Agregar a la categoría normalizada
+        if (!groupedAds[normalizedCat]) groupedAds[normalizedCat] = []
+        groupedAds[normalizedCat].push(ad)
+
+        // También agregar a la categoría original por si acaso (para compatibilidad)
+        if (rawCat !== normalizedCat) {
+          if (!groupedAds[rawCat]) groupedAds[rawCat] = []
+          groupedAds[rawCat].push(ad)
+        }
       })
 
       setCache(cacheKey, groupedAds, "ads")

@@ -20,6 +20,7 @@ const CASA_MAP: Record<string, string> = {
   bolsa: "Dólar MEP",
   contadoconliqui: "Dólar CCL",
   tarjeta: "Dólar Tarjeta",
+  cripto: "Dólar Cripto",
 }
 
 const wanted = new Set(Object.keys(CASA_MAP))
@@ -51,7 +52,7 @@ export async function GET() {
     const filtered = data.filter((d) => wanted.has(d.casa))
 
     // Orden + nombres como en tu UI
-    const order = ["oficial", "blue", "bolsa", "contadoconliqui", "tarjeta"]
+    const order = ["oficial", "blue", "bolsa", "contadoconliqui", "tarjeta", "cripto"]
 
     const rates: Rate[] = order
       .map((key) => filtered.find((d) => d.casa === key))

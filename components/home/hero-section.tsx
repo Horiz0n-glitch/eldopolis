@@ -49,25 +49,39 @@ export function HeroSection({ news }: HeroSectionProps) {
 
                 {/* Side Cards Column */}
                 <div className="flex flex-col gap-6 h-full">
-                    {sideNews.map((item) => (
+                    {/* First side news card */}
+                    {sideNews[0] && (
                         <Link
-                            key={item.id}
-                            href={`/news/${item.id}`}
+                            href={`/news/${sideNews[0].id}`}
                             className="flex-1 relative group overflow-hidden rounded-lg bg-slate-900 h-[250px] lg:h-auto"
                         >
                             <img
-                                alt={item.title}
+                                alt={sideNews[0].title}
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70"
-                                src={item.imageUrl || "/placeholder.svg"}
+                                src={sideNews[0].imageUrl || "/placeholder.svg"}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                             <div className="absolute bottom-0 p-6 w-full">
                                 <h3 className="text-xl font-bold text-white leading-tight transition-colors">
-                                    {item.title}
+                                    {sideNews[0].title}
                                 </h3>
                             </div>
                         </Link>
-                    ))}
+                    )}
+
+                    {/* Radio Banner */}
+                    <a
+                        href="https://streaminglocucionar.com/portal/?p=16127"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 relative group overflow-hidden rounded-lg bg-slate-900 h-[250px] lg:h-auto"
+                    >
+                        <img
+                            alt="Escuchá Radio Eldópolis en vivo"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                            src="/banner-radio.gif.gif"
+                        />
+                    </a>
                 </div>
             </div>
         </section>

@@ -1,19 +1,10 @@
-import { initializeApp, getApps } from "firebase/app"
-import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore"
+import { db as configDb } from "./firebaseConfig"
+import { Firestore, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore"
 import { cacheManager } from "./cache-manager"
 import type { News } from "@/types/news"
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-}
-
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-export const db = getFirestore(app)
+// Re-export db from firebaseConfig to ensure singleton instance with persistence settings
+export const db = configDb as Firestore
 
 function reorderUcamiFirst(ads: any[]) {
   if (!Array.isArray(ads) || ads.length <= 1) return ads
@@ -61,7 +52,7 @@ export const getBatchInitialData = async () => {
     const allAds = adsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    }))
+    })) as any[]
 
     const adsByCategory = {
       "Grande Principal": allAds.filter((ad) => ad.category === "Grande Principal"),

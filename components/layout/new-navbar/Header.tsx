@@ -27,11 +27,11 @@ export default function Header() {
 
   // Usar dollarRates como referencia estática para el primer render
   const initialDollarRates = [
-    { name: "Dólar MEP", sell: 1150, change: "+0.5%" },
-    { name: "Dólar CCL", sell: 1160, change: "+0.2%" },
-    { name: "Blue", sell: 1220, change: "-0.8%" },
-    { name: "Oficial", sell: 1020, change: "—" },
-    { name: "Cripto", sell: 1185, change: "+1.1%" },
+    { name: "Dólar MEP", sell: 1180, change: "—" },
+    { name: "Dólar CCL", sell: 1220, change: "—" },
+    { name: "Blue", sell: 1240, change: "—" },
+    { name: "Oficial", sell: 1050, change: "—" },
+    { name: "Tarjeta", sell: 1680, change: "—" },
   ]
   const [dollarRates, setDollarRates] = useState<Rate[]>(initialDollarRates)
 
@@ -41,6 +41,36 @@ export default function Header() {
     }
     window.addEventListener("scroll", handleScroll)
     setMounted(true)
+
+    // Fetch dollar rates
+    const fetchRates = async () => {
+      try {
+        const res = await fetch("/api/dolar")
+        if (!res.ok) throw new Error("Failed to fetch rates")
+        const json = await res.json()
+        if (json.ok && Array.isArray(json.data)) {
+          // Map API data to UI format if needed, though they look compatible
+          // Filter/Order as preferred: MEP, CCL, Blue, Oficial, Tarjeta, Cripto
+          const orden = ["Dólar MEP", "Dólar CCL", "Dólar Blue", "Dólar Oficial", "Dólar Tarjeta", "Dólar Cripto"]
+          const sorted = json.data.sort((a: Rate, b: Rate) => {
+            return orden.indexOf(a.name) - orden.indexOf(b.name)
+          })
+
+          // Process to ensure simplified names if needed
+          const processed = sorted.map((r: Rate) => ({
+            ...r,
+            name: r.name.replace("Dólar ", "") // Simplify names for ticker: "Blue", "MEP", etc.
+          }))
+
+          setDollarRates(processed)
+        }
+      } catch (error) {
+        console.error("Error updating dollar rates:", error)
+      }
+    }
+
+    fetchRates()
+
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
