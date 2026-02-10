@@ -1,9 +1,9 @@
-const CACHE_NAME = "eldopolis-v1.3.0"
-const STATIC_CACHE = "eldopolis-static-v1.3.0"
-const DYNAMIC_CACHE = "eldopolis-dynamic-v1.3.0"
-const IMAGE_CACHE = "eldopolis-images-v1.3.0"
+const CACHE_NAME = "eldopolis-v1.4.0"
+const STATIC_CACHE = "eldopolis-static-v1.4.0"
+const DYNAMIC_CACHE = "eldopolis-dynamic-v1.4.0"
+const IMAGE_CACHE = "eldopolis-images-v1.4.0"
 
-const CACHE_VERSION = "1.3.0"
+const CACHE_VERSION = "1.4.0"
 const MAX_CACHE_SIZE = 50 * 1024 * 1024 // 50MB máximo
 const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000 // 7 días
 
