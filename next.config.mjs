@@ -46,13 +46,23 @@ const nextConfig = {
           },
         ],
       },
-      // Páginas HTML - caché corto con revalidación
+      // Service Worker, Manifest y Offline - NUNCA cachear
+      {
+        source: '/(sw.js|manifest.json|offline.html)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+        ],
+      },
+      // Páginas HTML - caché desactivado para forzar actualización
       {
         source: '/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+            value: 'public, max-age=0, s-maxage=0, must-revalidate',
           },
         ],
       },
