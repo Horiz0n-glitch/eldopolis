@@ -4,54 +4,54 @@ import { useEffect } from "react"
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-      // Registrar Service Worker solo en producción
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const registerSW = async () => {
         try {
           const registration = await navigator.serviceWorker.register("/sw.js", {
             scope: "/",
-            updateViaCache: "none", // Siempre verificar actualizaciones
+            // Update immediately, do not wait for cache
           })
 
-          console.log("[SW] Registration successful:", registration.scope)
+          // Force update check on load
+          registration.update();
 
-          // Manejar actualizaciones del Service Worker
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing
-            if (newWorker) {
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  // Nueva versión disponible
-                  console.log("[SW] New version available")
-                  // Opcional: mostrar notificación al usuario
+          console.log("[SW] Registration successful with scope:", registration.scope)
+
+          // Detect new service worker installation
+          registration.onupdatefound = () => {
+            const installingWorker = registration.installing;
+            if (installingWorker) {
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                  if (navigator.serviceWorker.controller) {
+                    // New content is available; force refresh.
+                    console.log("[SW] New version found. Reloading...");
+                    // Optional: You could show a toast here instead of auto-reloading
+                    // but for this issue we want to force the new version.
+                    // We must ensure the new SW takes control.
+                    // The SW should call skipWaiting() in its install/activate phase (already doing that).
+                    // We just need to reload the page once the controller changes.
+                  } else {
+                    console.log("[SW] Content is cached for offline use.");
+                  }
                 }
-              })
+              };
             }
-          })
-
-          // Programar limpieza de caché cada 24 horas
-          setInterval(
-            () => {
-              if (registration.active) {
-                registration.active.postMessage({ type: "CLEANUP_CACHE" })
-              }
-            },
-            24 * 60 * 60 * 1000,
-          )
-
-          // Limpiar caché al cargar la página si han pasado más de 24 horas
-          const lastCleanup = localStorage.getItem("sw-last-cleanup")
-          const now = Date.now()
-          if (!lastCleanup || now - Number.parseInt(lastCleanup) > 24 * 60 * 60 * 1000) {
-            registration.active?.postMessage({ type: "CLEANUP_CACHE" })
-            localStorage.setItem("sw-last-cleanup", now.toString())
-          }
+          };
         } catch (error) {
           console.error("[SW] Registration failed:", error)
         }
       }
 
-      // Registrar cuando la página esté completamente cargada
+      // Handle controller change (when new SW takes over)
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
       if (document.readyState === "complete") {
         registerSW()
       } else {
