@@ -17,6 +17,7 @@ import { db } from "./firebaseConfig"
 import type { News, Publicidad } from "@/lib/validations"
 import { NewsSchema, PublicidadSchema } from "@/lib/validations"
 import { mockNewsData } from "./mock-data"
+import { staticAds } from "@/lib/static-ads"
 
 import { cacheManager } from "./cache-manager"
 
@@ -497,7 +498,8 @@ export async function getAllAds(): Promise<Record<string, Publicidad[]>> {
 
       const allAdsArray = [
         ...publicidadesDocs.map(convertFirestoreToAd),
-        ...advertisementsDocs.map(convertFirestoreToAd)
+        ...advertisementsDocs.map(convertFirestoreToAd),
+        ...staticAds // Inject static ads
       ].filter((ad: Publicidad) => {
         if (ad.isActive === false) return false
         const startDate = ad.startDate ? new Date(ad.startDate) : null
